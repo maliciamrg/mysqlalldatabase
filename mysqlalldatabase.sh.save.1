@@ -1,0 +1,36 @@
+#!/bin/bash
+################################################
+#
+# Backup all MySQL databases in separate files and compress those.
+# Furthermore the script will create a folder with the current time stamp
+# @author: Per Lasse Baasch (http://skycube.net)
+# @Version: 2014-06-13
+# NOTE: MySQL and gzip installed on the system
+# and you will need write permissions in the directory where you executing this script
+#
+################################################
+# MySQL User
+USER='root'
+# MySQL Password
+PASSWORD='roxanne01'
+# Backup Directory - NO TAILING SLASH!
+OUTPUT="/media/html"
+##### And
+TIMESTAMP=`date +%Y%m%d_%H%M%S`;
+mkdir $OUTPUT/$TIMESTAMP;
+cd $OUTPUT/$TIMESTAMP;
+echo "Starting MySQL Backup";
+echo `date`;
+databases=`mysql --user=$USER --password=$PASSWORD -e "SHOW DATABASES;" | tr -d "| " | grep -v Database`
+for db in $databases; do
+echo "$db"
+    if [ "$db" != "information_schema" ]
+
+ && [ "$db" != _* ] ; then
+        echo "Dumping database: $db"
+        mysqldump --force --opt --user=$USER --password=$PASSWORD --databases $db > $OUTPUT/dbbackup-$TIMESTAMP-$db.sql
+	gzip $OUTPUT/dbbackup-$TIMESTAMP-$db.sql
+    fi
+done
+echo "Finished MySQL Backup";
+echo `date`;
